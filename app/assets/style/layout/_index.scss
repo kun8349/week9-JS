@@ -616,13 +616,11 @@ body {
   text-align: left;
 }
 
-.shoppingCart-table tr {
+.shoppingCart-bottom{
   border-bottom: 1px solid #B9B9B9;
 }
 
-.shoppingCart-table tr:first-child, .shoppingCart-table tr:last-child {
-  border-bottom: 0;
-}
+
 
 @media (max-width: 767px) {
   .shoppingCart-table {
@@ -666,15 +664,22 @@ body {
   display: inline-block;
   text-decoration: none;
   padding: 5px 15px;
+  background-color:#F8F8F8;
   color: #000000;
   border: 1.3px solid #000000;
   border-radius: 5px;
   font-size: 1.25rem;
+  
 }
 
 .discardAllBtn:hover {
   background-color: #000000;
-  color: #FFFFFF;
+  color: #FFFFFF; 
+}
+.discss{
+  pointer-events:none;
+  color:#afafaf;
+  border: 1.3px solid #afafaf;
 }
 
 .orderInfo {
