@@ -42,8 +42,18 @@ let envOptions = {
   javascript: {
     src: [
       `${srcPath}/assets/js/**/*.js`
+      `!${srcPath}/assets/js/admin.js`,  //新增加的
+      `!${srcPath}/assets/js/config.js`,  //新增加的
     ],
     concat: 'all.js',
+    path: `${distPath}/assets/js`,
+  },
+  //新增加copyJSFile
+  copyJSFile: {
+    src: [
+      `${srcPath}/assets/js/admin.js`,
+      `${srcPath}/assets/js/config.js`,
+    ],
     path: `${distPath}/assets/js`,
   },
   vendors: {
@@ -67,6 +77,9 @@ let envOptions = {
     port: 8080,
   },
   deploySrc: `${distPath}/**/*`,
+  
 };
+
+
 
 exports.envOptions = envOptions;
