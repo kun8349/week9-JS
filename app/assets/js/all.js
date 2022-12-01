@@ -171,7 +171,7 @@ submit.addEventListener('click',e=>{
   if(cartData.length==0){return alert('請加入購物車清單')}
   if(customerName.value == ''|| customerPhone.value == ''||customerEmail.value == ''||customerAddress.value == ''||tradeWay.value == '')
   {return alert('請填寫正確訂單資訊')}
-  axios.post(`https://livejs-api.hexschool.io/api/livejs/v1/customer/${api_path}/carts`,{
+  axios.post(`https://livejs-api.hexschool.io/api/livejs/v1/customer/${api_path}/orders`,{
   "data": {
     "user": {
       "name": customerName.value,

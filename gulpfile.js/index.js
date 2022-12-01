@@ -62,7 +62,6 @@ function babel() {
     .pipe($.babel({
       presets: ['@babel/env'],
     }))
-    .pipe($.concat(envOptions.javascript.concat))
     .pipe($.sourcemaps.write('.'))
     .pipe(gulp.dest(envOptions.javascript.path))
     .pipe(
@@ -76,16 +75,6 @@ function vendorsJs() {
   return gulp.src(envOptions.vendors.src)
     .pipe($.concat(envOptions.vendors.concat))
     .pipe(gulp.dest(envOptions.vendors.path));
-}
-//新增函式
-function copyJSFile() {
-  return gulp.src(envOptions.copyJSFile.src)
-    .pipe(gulp.dest(envOptions.copyJSFile.path))
-    .pipe(
-      browserSync.reload({
-        stream: true,
-      }),
-    );
 }
 
 function browser() {
@@ -115,7 +104,6 @@ function watch() {
   gulp.watch(envOptions.html.ejsSrc, gulp.series(layoutHTML));
   gulp.watch(envOptions.javascript.src, gulp.series(babel));
   gulp.watch(envOptions.img.src, gulp.series(copyFile));
-  gulp.watch(envOptions.img.src, gulp.series(copyJSFile));
   gulp.watch(envOptions.style.src, gulp.series(sass));
 }
 
@@ -125,5 +113,6 @@ exports.clean = clean;
 
 
 // 執行添加 copyJSFile
-exports.build = gulp.series(clean, copyFile, copyJSFile, layoutHTML, sass, babel, vendorsJs);
-exports.default = gulp.series(clean, copyFile, copyJSFile, layoutHTML, sass, babel, vendorsJs, gulp.parallel(browser, watch));
+exports.build = gulp.series(clean, copyFile, layoutHTML, sass, babel, vendorsJs);
+
+exports.default = gulp.series(clean, copyFile, layoutHTML, sass, babel, vendorsJs, gulp.parallel(browser, watch));
