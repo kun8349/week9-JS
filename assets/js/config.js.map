@@ -1,0 +1,1 @@
+{"version":3,"sources":["config.js"],"names":["api_path","token"],"mappings":";;AAAA,IAAMA,QAAQ,GAAG,OAAjB;AACA,IAAMC,KAAK,GAAG,8BAAd","sourcesContent":["const api_path = 'kevin';\r\nconst token = 'ueJmhsnczaYWpT00AQFG9GxbHxN2';"],"file":"config.js"}

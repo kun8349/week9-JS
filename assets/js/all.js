@@ -1,7 +1,5 @@
 "use strict";
 
-var api_path = 'kevin';
-var token = 'ueJmhsnczaYWpT00AQFG9GxbHxN2';
 var productsData = [];
 var cartData = []; //產品列表DOM
 
@@ -151,7 +149,7 @@ submit.addEventListener('click', function (e) {
     return alert('請填寫正確訂單資訊');
   }
 
-  axios.post("https://livejs-api.hexschool.io/api/livejs/v1/customer/".concat(api_path, "/carts"), {
+  axios.post("https://livejs-api.hexschool.io/api/livejs/v1/customer/".concat(api_path, "/orders"), {
     "data": {
       "user": {
         "name": customerName.value,
