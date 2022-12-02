@@ -53,23 +53,33 @@ dataAdmin.addEventListener('click', function (e) {
 
   if (e.target.nodeName === 'A') {
     var statusId = e.target.getAttribute('data-id');
-    var status = e.target.getAttribute('data-status');
-    orderStatus(statusId, status);
-    console.log(status);
-  } // console.log(e.target.getAttribute('data-id'));
+    var statusOrder;
 
+    if (e.target.getAttribute('data-status') === 'false') {
+      statusOrder = false;
+    } else {
+      statusOrder = true;
+    }
+
+    orderStatus(statusId, statusOrder);
+  } //單筆刪除
+
+
+  if (e.target.nodeName === 'INPUT') {
+    var deleteId = e.target.getAttribute('data-id');
+    orderDelete(deleteId);
+  }
 }); //修改狀態函式
 
 function orderStatus(id, status) {
   var newStatus;
 
-  if (status === true) {
-    newStatus = false;
-  } else if (status === false) {
+  if (status === false) {
     newStatus = true;
+  } else {
+    newStatus = false;
   }
 
-  console.log(newStatus);
   axios.put("https://livejs-api.hexschool.io/api/livejs/v1/admin/".concat(api_path, "/orders"), {
     "data": {
       "id": id,
@@ -80,9 +90,27 @@ function orderStatus(id, status) {
       'Authorization': token
     }
   }).then(function (res) {
+    alert('訂單狀態修改成功');
     renderOrderList();
   })["catch"](function (err) {
     console.log(err);
   });
 } //刪除單筆函式
+
+
+function orderDelete(id) {
+  axios["delete"]("https://livejs-api.hexschool.io/api/livejs/v1/admin/".concat(api_path, "/orders/").concat(id), {
+    headers: {
+      'Authorization': token
+    }
+  }).then(function (res) {
+    alert('單筆刪除成功');
+    renderOrderList();
+  })["catch"](function (err) {
+    console.log(err.data);
+  });
+} //全部刪除
+//優化
+//1.餅圖
+//2.小數點
 //# sourceMappingURL=admin.js.map
