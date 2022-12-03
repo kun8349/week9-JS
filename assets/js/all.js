@@ -39,7 +39,7 @@ function renderProduct() {
 
 
 function mixProductHTML(item) {
-  return "<li class=\"productCard\">\n   <h4 class=\"productType\">\u65B0\u54C1</h4>\n   <img src=\"".concat(item.images, "\" alt=\"\">\n   <a href=\"#\" class=\"addCardBtn\" data-id='").concat(item.id, "'>\u52A0\u5165\u8CFC\u7269\u8ECA</a>\n   <h3>").concat(item.title, "</h3>\n   <del class=\"originPrice\">NT$").concat(item.origin_price, "</del>\n   <p class=\"nowPrice\">NT$").concat(item.price, "</p>\n</li>");
+  return "<li class=\"productCard\">\n   <h4 class=\"productType\">\u65B0\u54C1</h4>\n   <img src=\"".concat(item.images, "\" alt=\"\">\n   <a href=\"#\" class=\"addCardBtn\" data-id='").concat(item.id, "'>\u52A0\u5165\u8CFC\u7269\u8ECA</a>\n   <h3>").concat(item.title, "</h3>\n   <del class=\"originPrice\">NT$").concat(thousand(item.origin_price), "</del>\n   <p class=\"nowPrice\">NT$").concat(thousand(item.price), "</p>\n</li>");
 } //篩選器
 
 
@@ -67,10 +67,10 @@ function getCartList() {
     cartData = response.data.carts;
     var str = '';
     cartData.forEach(function (item) {
-      str += "<tr class='shoppingCart-bottom'>\n                <td>\n                    <div class=\"cardItem-title\">\n                        <img src=\"".concat(item.product.images, "\" alt=\"\">\n                        <p>").concat(item.product.title, "</p>\n                    </div>\n                </td>\n                <td>NT$").concat(item.product.price, "</td>\n                <td>").concat(item.quantity, "</td>\n                <td>NT$").concat(item.product.price * item.quantity, "</td>\n                <td class=\"discardBtn\">\n                    <a data-product='").concat(item.id, "' href=\"#\" class=\"material-icons\">\n                        clear\n                    </a>\n                </td>\n              </tr>");
+      str += "<tr class='shoppingCart-bottom'>\n                <td>\n                    <div class=\"cardItem-title\">\n                        <img src=\"".concat(item.product.images, "\" alt=\"\">\n                        <p>").concat(item.product.title, "</p>\n                    </div>\n                </td>\n                <td>NT$").concat(thousand(item.product.price), "</td>\n                <td>").concat(item.quantity, "</td>\n                <td>NT$").concat(thousand(item.product.price * item.quantity), "</td>\n                <td class=\"discardBtn\">\n                    <a data-product='").concat(item.id, "' href=\"#\" class=\"material-icons\">\n                        clear\n                    </a>\n                </td>\n              </tr>");
     });
     cartListBody.innerHTML = str;
-    cartListFoot.textContent = "NT".concat(response.data.finalTotal);
+    cartListFoot.textContent = "NT".concat(thousand(response.data.finalTotal));
   })["catch"](function (error) {
     console.log(error.data);
   });
@@ -109,13 +109,18 @@ productWrap.addEventListener('click', function (e) {
 discardAllBtn.addEventListener('click', function (e) {
   e.preventDefault();
   discardAllBtn.classList.add('discss');
+  deleteAll();
+});
+
+function deleteAll() {
   axios["delete"]("https://livejs-api.hexschool.io/api/livejs/v1/customer/".concat(api_path, "/carts")).then(function (response) {
     alert('產品全部刪除成功');
     getCartList();
   })["catch"](function (error) {
     console.log(error.data);
   });
-}); //單筆刪除購物車
+} //單筆刪除購物車
+
 
 cartListBody.addEventListener('click', function (e) {
   e.preventDefault();
@@ -160,10 +165,77 @@ submit.addEventListener('click', function (e) {
       }
     }
   }).then(function (response) {
-    console.log(response.data);
     alert('訂單建立成功');
+    customerName.value = '';
+    customerPhone.value = '';
+    customerEmail.value = '';
+    customerAddress.value = '';
+    tradeWay.value = 'ATM';
+    cartData.length = 0;
+    getCartList();
   })["catch"](function (error) {
     console.log(response.data);
   });
-});
+}); //驗證
+//綁驗證value的DOM
+
+var inputs = document.querySelectorAll("input[name],select[data=payment]"); //綁整個表單的DOM
+
+var form = document.querySelector(".orderInfo-form"); //validate格式
+
+var constraints = {
+  "姓名": {
+    presence: {
+      message: "必填欄位"
+    }
+  },
+  "電話": {
+    presence: {
+      message: "必填欄位"
+    },
+    length: {
+      minimum: 8,
+      message: "需超過 8 碼"
+    }
+  },
+  "Email": {
+    presence: {
+      message: "必填欄位"
+    },
+    email: {
+      message: "格式錯誤"
+    }
+  },
+  "寄送地址": {
+    presence: {
+      message: "必填欄位"
+    }
+  },
+  "交易方式": {
+    presence: {
+      message: "必填欄位"
+    }
+  }
+};
+inputs.forEach(function (item) {
+  item.addEventListener("change", function () {
+    //更換成空字串
+    item.nextElementSibling.textContent = '';
+    var errors = validate(form, constraints) || '';
+    console.log(errors);
+
+    if (errors) {
+      Object.keys(errors).forEach(function (keys) {
+        // console.log(document.querySelector(`[data-message=${keys}]`))
+        document.querySelector("[data-message=\"".concat(keys, "\"]")).textContent = errors[keys];
+      });
+    }
+  });
+}); //utility js
+
+function thousand(num) {
+  var parts = num.toString().split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return parts.join('.');
+}
 //# sourceMappingURL=all.js.map

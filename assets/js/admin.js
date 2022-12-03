@@ -2,14 +2,52 @@
 
 var orderData = []; //DOM訂單資訊
 
-var dataAdmin = document.querySelector('[data-admin]'); //DOM訂單狀態
-//初始化網站
+var dataAdmin = document.querySelector('[data-admin]'); //DOM刪除全部
+
+var delAll = document.querySelector('.js-delAll'); //初始化網站
 
 function init() {
   renderOrderList();
 }
 
-init(); //渲染訂單資訊
+init(); //C3
+
+function renderC3() {
+  //C3
+  var totalObj = {};
+  var c3Data = []; //1.轉物件{床架: 24000,收納: 2670,窗簾: 1200}
+
+  orderData.forEach(function (item) {
+    item.products.forEach(function (product) {
+      console.log(product.category);
+
+      if (totalObj[product.category] == undefined) {
+        totalObj[product.category] = product.price * product.quantity;
+      } else {
+        totalObj[product.category] += product.price * product.quantity;
+      }
+    });
+  });
+  console.log(totalObj); // 2.轉成[['收納', 2670],['床架', 24000],['窗簾', 1200]];
+
+  c3Data = Object.entries(totalObj);
+  console.log(c3Data); // 3.丟進套件
+
+  var chart = c3.generate({
+    bindto: '#chart',
+    data: {
+      type: "pie",
+      columns: c3Data,
+      colors: {
+        "床架": "#DACBFF",
+        "窗簾": "#5434A7",
+        "收納": "#9D7FEA",
+        "其他": "#301E5F"
+      }
+    }
+  });
+} //渲染訂單資訊
+
 
 function renderOrderList() {
   axios.get("https://livejs-api.hexschool.io/api/livejs/v1/admin/".concat(api_path, "/orders"), {
@@ -19,12 +57,17 @@ function renderOrderList() {
   }).then(function (res) {
     orderData = res.data.orders;
     var str = '';
+    renderC3();
     orderData.forEach(function (item) {
-      //組合產品字串
+      //訂單時間
+      var time = new Date(item.createdAt * 1000);
+      var changeTime = "".concat(time.getFullYear(), "/").concat(time.getMonth() + 1, "/").concat(time.getDate()); //組合產品字串
+
       var productStr = '';
       item.products.forEach(function (item) {
         productStr += "<p>".concat(item.title, " X").concat(item.quantity, "</p>");
-      });
+      }); //訂單狀態
+
       var status = '';
 
       if (item.paid === false) {
@@ -34,7 +77,7 @@ function renderOrderList() {
       } //渲染order list
 
 
-      str += "<tr>\n                <td>".concat(item.id, "</td>\n                <td>\n                    <p>").concat(item.user.name, "</p>\n                    <p>").concat(item.user.tel, "</p>\n                </td>\n                <td>").concat(item.user.address, "</td>\n                <td>").concat(item.user.email, "</td>\n                <td data-productHTML>\n                   ").concat(productStr, "\n                </td>\n                <td>").concat(item.createdAt, "</td>\n                <td class=\"orderStatus-admin\">\n                    <a href=\"#\" data-status='").concat(item.paid, "' data-id='").concat(item.id, "'>").concat(status, "</a>\n                </td>\n                <td>\n                    <input type=\"button\" class=\"delSingleOrder-Btn\" value=\"\u522A\u9664\" data-id='").concat(item.id, "'>\n                </td>\n            </tr>");
+      str += "<tr>\n                <td>".concat(item.id, "</td>\n                <td>\n                    <p>").concat(item.user.name, "</p>\n                    <p>").concat(item.user.tel, "</p>\n                </td>\n                <td>").concat(item.user.address, "</td>\n                <td>").concat(item.user.email, "</td>\n                <td data-productHTML>\n                   ").concat(productStr, "\n                </td>\n                <td>").concat(changeTime, "</td>\n                <td class=\"orderStatus-admin\">\n                    <a href=\"#\" data-status='").concat(item.paid, "' data-id='").concat(item.id, "'>").concat(status, "</a>\n                </td>\n                <td>\n                    <input type=\"button\" class=\"delSingleOrder-Btn\" value=\"\u522A\u9664\" data-id='").concat(item.id, "'>\n                </td>\n            </tr>");
     });
     dataAdmin.innerHTML = str;
   })["catch"](function (err) {
@@ -110,7 +153,25 @@ function orderDelete(id) {
     console.log(err.data);
   });
 } //全部刪除
-//優化
+
+
+delAll.addEventListener('click', function (e) {
+  e.preventDefault();
+  orderDeleteAll();
+});
+
+function orderDeleteAll() {
+  axios["delete"]("https://livejs-api.hexschool.io/api/livejs/v1/admin/".concat(api_path, "/orders"), {
+    headers: {
+      'Authorization': token
+    }
+  }).then(function (res) {
+    alert('全部刪除成功');
+    renderOrderList();
+  })["catch"](function (err) {
+    console.log(err.data);
+  });
+} //優化
 //1.餅圖
 //2.小數點
 //# sourceMappingURL=admin.js.map
