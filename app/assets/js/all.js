@@ -51,8 +51,8 @@ function mixProductHTML(item){
    <img src="${item.images}" alt="">
    <a href="#" class="addCardBtn" data-id='${item.id}'>加入購物車</a>
    <h3>${item.title}</h3>
-   <del class="originPrice">NT$${item.origin_price}</del>
-   <p class="nowPrice">NT$${item.price}</p>
+   <del class="originPrice">NT$${thousand(item.origin_price)}</del>
+   <p class="nowPrice">NT$${thousand(item.price)}</p>
 </li>`
 
    
@@ -92,9 +92,9 @@ function getCartList(){
                         <p>${item.product.title}</p>
                     </div>
                 </td>
-                <td>NT$${item.product.price}</td>
+                <td>NT$${thousand(item.product.price)}</td>
                 <td>${item.quantity}</td>
-                <td>NT$${item.product.price*item.quantity}</td>
+                <td>NT$${thousand(item.product.price*item.quantity)}</td>
                 <td class="discardBtn">
                     <a data-product='${item.id}' href="#" class="material-icons">
                         clear
@@ -103,7 +103,7 @@ function getCartList(){
               </tr>`
     })
     cartListBody.innerHTML = str;
-    cartListFoot.textContent = `NT${response.data.finalTotal}`
+    cartListFoot.textContent = `NT${thousand(response.data.finalTotal)}`
   }).catch(error=>{
     console.log(error.data);
   })
@@ -138,6 +138,9 @@ productWrap.addEventListener('click',e=>{
 discardAllBtn.addEventListener('click',e=>{
   e.preventDefault();
   discardAllBtn.classList.add('discss');
+  deleteAll();  
+})
+function deleteAll(){
   axios.delete(`https://livejs-api.hexschool.io/api/livejs/v1/customer/${api_path}/carts`)
     .then(response=>{
       alert('產品全部刪除成功');
@@ -146,8 +149,7 @@ discardAllBtn.addEventListener('click',e=>{
     }).catch(error=>{
       console.log(error.data);
     })
-    
-})
+}
 
 //單筆刪除購物車
 cartListBody.addEventListener('click',e=>{
@@ -182,14 +184,85 @@ submit.addEventListener('click',e=>{
     }
   }
   }).then(response=>{
-    
-    console.log(response.data);
     alert('訂單建立成功')
+    customerName.value = '';
+    customerPhone.value = '';
+    customerEmail.value = '';
+    customerAddress.value = '';
+    tradeWay.value = 'ATM';
+    cartData.length = 0;
+    getCartList();
   }).catch(error=>{
     console.log(response.data);
   })
-
+  
 })
+
+//驗證
+//綁驗證value的DOM
+const inputs = document.querySelectorAll("input[name],select[data=payment]");
+//綁整個表單的DOM
+const form = document.querySelector(".orderInfo-form");
+//validate格式
+const constraints = {
+  "姓名": {
+    presence: {
+      message: "必填欄位"
+    }
+  },
+  "電話": {
+    presence: {
+      message: "必填欄位"
+    },
+    length: {
+      minimum: 8,
+      message: "需超過 8 碼"
+    }
+  },
+  "Email": {
+    presence: {
+      message: "必填欄位"
+    },
+    email: {
+      message: "格式錯誤"
+    }
+  },
+  "寄送地址": {
+    presence: {
+      message: "必填欄位"
+    }
+  },
+  "交易方式": {
+    presence: {
+      message: "必填欄位"
+    }
+  },
+};
+
+
+inputs.forEach((item) => {
+  item.addEventListener("change", function () {
+    //更換成空字串
+    item.nextElementSibling.textContent = '';
+    let errors = validate(form, constraints) || '';
+    console.log(errors)
+
+    if (errors) {
+      Object.keys(errors).forEach(function (keys) {
+        // console.log(document.querySelector(`[data-message=${keys}]`))
+        document.querySelector(`[data-message="${keys}"]`).textContent = errors[keys];
+      })
+    }
+  });
+});
+
+
+//utility js
+function thousand(num){
+  var parts = num.toString().split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return parts.join('.');
+}
 
 
 

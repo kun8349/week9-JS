@@ -1,18 +1,55 @@
 let orderData = [];
 
+
 //DOM訂單資訊
 const dataAdmin = document.querySelector('[data-admin]');
-//DOM訂單狀態
+//DOM刪除全部
+const delAll = document.querySelector('.js-delAll');
 
 
 
 //初始化網站
 function init(){
     renderOrderList();
+    
 }
 init();
 
-
+//C3
+function renderC3(){
+    //C3
+    let totalObj = {};
+    let c3Data = []; 
+    //1.轉物件{床架: 24000,收納: 2670,窗簾: 1200}
+    orderData.forEach(item=>{
+        item.products.forEach(product=>{
+            console.log(product.category);
+            if(totalObj[product.category]==undefined){
+                totalObj[product.category] = product.price*product.quantity;
+            }else{
+                totalObj[product.category] += product.price*product.quantity;
+            }
+        })
+    })
+    console.log(totalObj);
+    // 2.轉成[['收納', 2670],['床架', 24000],['窗簾', 1200]];
+    c3Data = Object.entries(totalObj);
+    console.log(c3Data);
+    // 3.丟進套件
+    let chart = c3.generate({
+        bindto: '#chart', 
+        data: {
+            type: "pie",
+            columns: c3Data,
+            colors:{
+                "床架":"#DACBFF",
+                "窗簾":"#5434A7",
+                "收納": "#9D7FEA",
+                "其他": "#301E5F",
+            }
+        },
+    });
+}
 
 //渲染訂單資訊
 function renderOrderList(){
@@ -24,12 +61,18 @@ function renderOrderList(){
     .then(res=>{
         orderData=res.data.orders;
         let str = '';
+        renderC3();
         orderData.forEach(item => {
+            
+            //訂單時間
+            const time = new Date(item.createdAt*1000);
+            const changeTime = `${time.getFullYear()}/${time.getMonth()+1}/${time.getDate()}`
             //組合產品字串
             let productStr = '';
             item.products.forEach(item=>{
                 productStr += `<p>${item.title} X${item.quantity}</p>`;
             })
+            //訂單狀態
             let status = '';
             if(item.paid === false){
                 status = '未處理'
@@ -48,7 +91,7 @@ function renderOrderList(){
                 <td data-productHTML>
                    ${productStr}
                 </td>
-                <td>${item.createdAt}</td>
+                <td>${changeTime}</td>
                 <td class="orderStatus-admin">
                     <a href="#" data-status='${item.paid}' data-id='${item.id}'>${status}</a>
                 </td>
@@ -73,27 +116,31 @@ dataAdmin.addEventListener('click',e=>{
     //訂單狀態
     if(e.target.nodeName === 'A'){
         let statusId = e.target.getAttribute('data-id');
-        let status = e.target.getAttribute('data-status');
         
-        orderStatus(statusId,status)
-        console.log(status);
+        let statusOrder ;
+        if(e.target.getAttribute('data-status')==='false'){
+            statusOrder = false;
+        }else{
+            statusOrder = true;
+        }
+        orderStatus(statusId,statusOrder);
+        
     }
-    // console.log(e.target.getAttribute('data-id'));
-
-    
-    
-    
+    //單筆刪除
+    if(e.target.nodeName === 'INPUT'){
+        let deleteId = e.target.getAttribute('data-id');
+        orderDelete(deleteId);
+    }
 })
-
 //修改狀態函式
 function orderStatus(id,status){
     let newStatus;
-    if(status === true){
-        newStatus = false;
-    }else if(status === false){
+    if(status === false){
         newStatus = true;
+    }else{
+        newStatus = false;
     }
-    console.log(newStatus);
+
     axios.put(`https://livejs-api.hexschool.io/api/livejs/v1/admin/${api_path}/orders`,{
         "data": {
             "id": id,
@@ -105,12 +152,55 @@ function orderStatus(id,status){
         } 
     })
     .then(res=>{
+        alert('訂單狀態修改成功')
         renderOrderList();
     })
     .catch(err=>{
         console.log(err);
     })
 }
-
-
 //刪除單筆函式
+function orderDelete(id){
+    axios.delete(`https://livejs-api.hexschool.io/api/livejs/v1/admin/${api_path}/orders/${id}`,
+    {
+        headers:{
+            'Authorization':token,
+        } 
+    })
+    .then(res=>{
+        alert('單筆刪除成功');
+        renderOrderList();
+    })
+    .catch(err=>{
+        console.log(err.data);
+    })
+}
+
+//全部刪除
+delAll.addEventListener('click',e=>{
+    e.preventDefault();
+    orderDeleteAll();
+    
+})
+function orderDeleteAll(){
+    axios.delete(`https://livejs-api.hexschool.io/api/livejs/v1/admin/${api_path}/orders`,
+    {
+        headers:{
+            'Authorization':token,
+        } 
+    })
+    .then(res=>{
+        alert('全部刪除成功');
+        renderOrderList();
+    })
+    .catch(err=>{
+        console.log(err.data);
+    })
+}
+
+
+
+
+//優化
+//1.餅圖
+//2.小數點
