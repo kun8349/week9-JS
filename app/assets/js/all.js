@@ -93,7 +93,13 @@ function getCartList(){
                     </div>
                 </td>
                 <td>NT$${thousand(item.product.price)}</td>
-                <td>${item.quantity}</td>
+                <td>
+                  <div class='d-flex justify-content-center align-items-center'>
+                    <a href="#"><span class="material-icons cartAmount-icon" data-id="${item.id}">remove</span></a>
+                    <p data-change>${item.quantity}</p>
+                    <a href="#"><span class="material-icons cartAmount-icon" data-id="${item.id}" data-qty="${item.quantity}">add</span></a>
+                  </div>
+                </td>
                 <td>NT$${thousand(item.product.price*item.quantity)}</td>
                 <td class="discardBtn">
                     <a data-product='${item.id}' href="#" class="material-icons">
@@ -104,10 +110,40 @@ function getCartList(){
     })
     cartListBody.innerHTML = str;
     cartListFoot.textContent = `NT${thousand(response.data.finalTotal)}`
-  }).catch(error=>{
-    console.log(error.data);
+    //新增功能:修改數量
+    const cartAmountBtn = document.querySelectorAll('.cartAmount-icon');
+    cartAmountBtn.forEach(item=>{
+      item.addEventListener('click',e=>{
+        e.preventDefault();
+        let id = e.target.getAttribute('data-id');
+        let qty = Number(e.target.getAttribute('data-qty'));
+        if(e.target.textContent ==='add'){
+          qty += 1;
+
+        }else if(e.target.textContent ==='remove'){
+          qty -= 1;
+
+        }
+        axios.patch(`https://livejs-api.hexschool.io/api/livejs/v1/customer/${api_path}/carts`,{
+          "data": {
+            "id": id,
+            "quantity": qty
+          }
+        })
+        .then(res=>{
+          alert('修改數量成功')
+          getCartList();
+        })
+        .catch(error=>{
+          console.log(error.data);
+        })
+      })
+    })
   })
 }
+
+//新增功能:修改購物車數量
+
 
 //加入購物車
 productWrap.addEventListener('click',e=>{
@@ -117,7 +153,7 @@ productWrap.addEventListener('click',e=>{
   let num = 1;
   cartData.forEach(item=>{
     if(item.product.id===txtId){
-      num += 1;
+      num = (item.quantity += 1);
     }
   })
   if(e.target.nodeName !== 'A'){return};
@@ -126,10 +162,12 @@ productWrap.addEventListener('click',e=>{
       "productId": txtId,
       "quantity": num
     }
-  }).then(response=>{
+  })
+  .then(response=>{
     alert('產品加入成功');
     getCartList();
-  }).catch(error=>{
+  })
+  .catch(error=>{
     console.log(error.data);
   })
 })
