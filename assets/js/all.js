@@ -67,14 +67,40 @@ function getCartList() {
     cartData = response.data.carts;
     var str = '';
     cartData.forEach(function (item) {
-      str += "<tr class='shoppingCart-bottom'>\n                <td>\n                    <div class=\"cardItem-title\">\n                        <img src=\"".concat(item.product.images, "\" alt=\"\">\n                        <p>").concat(item.product.title, "</p>\n                    </div>\n                </td>\n                <td>NT$").concat(thousand(item.product.price), "</td>\n                <td>").concat(item.quantity, "</td>\n                <td>NT$").concat(thousand(item.product.price * item.quantity), "</td>\n                <td class=\"discardBtn\">\n                    <a data-product='").concat(item.id, "' href=\"#\" class=\"material-icons\">\n                        clear\n                    </a>\n                </td>\n              </tr>");
+      str += "<tr class='shoppingCart-bottom'>\n                <td>\n                    <div class=\"cardItem-title\">\n                        <img src=\"".concat(item.product.images, "\" alt=\"\">\n                        <p>").concat(item.product.title, "</p>\n                    </div>\n                </td>\n                <td>NT$").concat(thousand(item.product.price), "</td>\n                <td>\n                  <div class='d-flex justify-content-center align-items-center'>\n                    <a href=\"#\"><span class=\"material-icons cartAmount-icon\" data-id=\"").concat(item.id, "\">remove</span></a>\n                    <p data-change>").concat(item.quantity, "</p>\n                    <a href=\"#\"><span class=\"material-icons cartAmount-icon\" data-id=\"").concat(item.id, "\" data-qty=\"").concat(item.quantity, "\">add</span></a>\n                  </div>\n                </td>\n                <td>NT$").concat(thousand(item.product.price * item.quantity), "</td>\n                <td class=\"discardBtn\">\n                    <a data-product='").concat(item.id, "' href=\"#\" class=\"material-icons\">\n                        clear\n                    </a>\n                </td>\n              </tr>");
     });
     cartListBody.innerHTML = str;
-    cartListFoot.textContent = "NT".concat(thousand(response.data.finalTotal));
-  })["catch"](function (error) {
-    console.log(error.data);
+    cartListFoot.textContent = "NT".concat(thousand(response.data.finalTotal)); //新增功能:修改數量
+
+    var cartAmountBtn = document.querySelectorAll('.cartAmount-icon');
+    cartAmountBtn.forEach(function (item) {
+      item.addEventListener('click', function (e) {
+        e.preventDefault();
+        var id = e.target.getAttribute('data-id');
+        var qty = Number(e.target.getAttribute('data-qty'));
+
+        if (e.target.textContent === 'add') {
+          qty += 1;
+        } else if (e.target.textContent === 'remove') {
+          qty -= 1;
+        }
+
+        axios.patch("https://livejs-api.hexschool.io/api/livejs/v1/customer/".concat(api_path, "/carts"), {
+          "data": {
+            "id": id,
+            "quantity": qty
+          }
+        }).then(function (res) {
+          alert('修改數量成功');
+          getCartList();
+        })["catch"](function (error) {
+          console.log(error.data);
+        });
+      });
+    });
   });
-} //加入購物車
+} //新增功能:修改購物車數量
+//加入購物車
 
 
 productWrap.addEventListener('click', function (e) {
@@ -84,7 +110,7 @@ productWrap.addEventListener('click', function (e) {
   var num = 1;
   cartData.forEach(function (item) {
     if (item.product.id === txtId) {
-      num += 1;
+      num = item.quantity += 1;
     }
   });
 
