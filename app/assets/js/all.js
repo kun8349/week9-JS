@@ -1,7 +1,6 @@
 
 
-let productsData = [];
-let cartData = [];
+
 //產品列表DOM
 const productWrap = document.querySelector('.productWrap');
 //篩選器DOM
@@ -18,8 +17,10 @@ const customerEmail= document.querySelector('#customerEmail')
 const customerAddress = document.querySelector('#customerAddress');
 const tradeWay = document.querySelector('#tradeWay');
 const submit = document.querySelector('[data-submit]');
-
-
+//產品列表
+let productsData = [];
+//購物車列表
+let cartData = [];
 
 
 //初始化網站
@@ -60,14 +61,12 @@ function mixProductHTML(item){
 
 //篩選器
 productSelect.addEventListener('change',e=>{
-  console.log();
   const txt = e.target.value;
   if(txt === '全部'){
     renderProduct();
     return;
   }
   let str = '';
-  let filterAry = [];
   productsData.forEach(item=>{
     if(item.category === txt){
       str += 
@@ -83,7 +82,25 @@ function getCartList(){
   axios.get(`https://livejs-api.hexschool.io/api/livejs/v1/customer/${api_path}/carts`)
   .then(response=>{
     cartData = response.data.carts;
-    let str = ''
+    //判斷全部刪除按鈕
+    if(cartData.length===0){
+      discardAllBtn.classList.add('discss');
+    }else{
+      discardAllBtn.classList.remove('discss');
+    }
+    //渲染購物車清單
+    renderCartList(cartData);
+    //購物車總金額
+    cartListFoot.textContent = `NT${thousand(response.data.finalTotal)}`
+    
+  })
+  .catch(error=>{
+    alert(error.data)
+  })
+}
+//渲染購物車清單
+function renderCartList(ary){
+  let str = ''
     cartData.forEach(item=>{
       str += `<tr class='shoppingCart-bottom'>
                 <td>
@@ -95,9 +112,9 @@ function getCartList(){
                 <td>NT$${thousand(item.product.price)}</td>
                 <td>
                   <div class='d-flex justify-content-center align-items-center'>
-                    <a href="#"><span class="material-icons cartAmount-icon" data-id="${item.id}">remove</span></a>
+                    <a href="#"><span class="material-icons cartAmount-icon" data-id="${item.id}" data-qty="${item.quantity - 1}">remove</span></a>
                     <p data-change>${item.quantity}</p>
-                    <a href="#"><span class="material-icons cartAmount-icon" data-id="${item.id}" data-qty="${item.quantity}">add</span></a>
+                    <a href="#"><span class="material-icons cartAmount-icon" data-id="${item.id}" data-qty="${item.quantity + 1}">add</span></a>
                   </div>
                 </td>
                 <td>NT$${thousand(item.product.price*item.quantity)}</td>
@@ -109,25 +126,25 @@ function getCartList(){
               </tr>`
     })
     cartListBody.innerHTML = str;
-    cartListFoot.textContent = `NT${thousand(response.data.finalTotal)}`
     //新增功能:修改數量
     const cartAmountBtn = document.querySelectorAll('.cartAmount-icon');
+
     cartAmountBtn.forEach(item=>{
       item.addEventListener('click',e=>{
         e.preventDefault();
-        let id = e.target.getAttribute('data-id');
-        let qty = Number(e.target.getAttribute('data-qty'));
-        if(e.target.textContent ==='add'){
-          qty += 1;
-
-        }else if(e.target.textContent ==='remove'){
-          qty -= 1;
-
-        }
-        axios.patch(`https://livejs-api.hexschool.io/api/livejs/v1/customer/${api_path}/carts`,{
+        let id = e.target.dataset.id;
+        let qty = Number(e.target.dataset.qty);
+        changeQty(id,qty);
+      })
+    })
+}
+//新增功能:修改購物車數量
+function changeQty(id,num){ 
+  if(num>0){
+    axios.patch(`https://livejs-api.hexschool.io/api/livejs/v1/customer/${api_path}/carts`,{
           "data": {
             "id": id,
-            "quantity": qty
+            "quantity": num,
           }
         })
         .then(res=>{
@@ -135,20 +152,19 @@ function getCartList(){
           getCartList();
         })
         .catch(error=>{
-          console.log(error.data);
+          alert(error.data)
         })
-      })
-    })
-  })
+  }else{
+    return alert('數量不得小於0');
+  }
 }
 
-//新增功能:修改購物車數量
 
 
 //加入購物車
 productWrap.addEventListener('click',e=>{
   e.preventDefault();
-  discardAllBtn.classList.remove('discss');
+  
   const txtId = e.target.getAttribute('data-id');
   let num = 1;
   cartData.forEach(item=>{
@@ -165,7 +181,8 @@ productWrap.addEventListener('click',e=>{
   })
   .then(response=>{
     alert('產品加入成功');
-    getCartList();
+    cartData = response.data.carts;
+    renderCartList(cartData);
   })
   .catch(error=>{
     console.log(error.data);
@@ -175,7 +192,7 @@ productWrap.addEventListener('click',e=>{
 //刪除全部購物車
 discardAllBtn.addEventListener('click',e=>{
   e.preventDefault();
-  discardAllBtn.classList.add('discss');
+  
   deleteAll();  
 })
 function deleteAll(){
@@ -199,10 +216,11 @@ cartListBody.addEventListener('click',e=>{
       alert('產品刪除成功!');
       getCartList();
 
-    }).catch(error=>{
+    })
+    .catch(error=>{
       console.log(error.data);
     })
-  if(cartData.length<=1){discardAllBtn.classList.add('discss');}
+  
 })
 
 //送出表單資料
@@ -221,7 +239,8 @@ submit.addEventListener('click',e=>{
       "payment": tradeWay.value
     }
   }
-  }).then(response=>{
+  })
+  .then(response=>{
     alert('訂單建立成功')
     customerName.value = '';
     customerPhone.value = '';
@@ -230,13 +249,14 @@ submit.addEventListener('click',e=>{
     tradeWay.value = 'ATM';
     cartData.length = 0;
     getCartList();
-  }).catch(error=>{
+  })
+  .catch(error=>{
     console.log(response.data);
   })
   
 })
 
-//驗證
+//--驗證--
 //綁驗證value的DOM
 const inputs = document.querySelectorAll("input[name],select[data=payment]");
 //綁整個表單的DOM

@@ -1,4 +1,4 @@
-let orderData = [];
+
 
 
 //DOM訂單資訊
@@ -6,8 +6,8 @@ const dataAdmin = document.querySelector('[data-admin]');
 //DOM刪除全部
 const delAll = document.querySelector('.js-delAll');
 
-
-
+//訂單資訊
+let orderData = [];
 //初始化網站
 function init(){
     renderOrderList();
@@ -23,7 +23,6 @@ function renderC3(){
     //1.轉物件{床架: 24000,收納: 2670,窗簾: 1200}
     orderData.forEach(item=>{
         item.products.forEach(product=>{
-            console.log(product.category);
             if(totalObj[product.category]==undefined){
                 totalObj[product.category] = product.price*product.quantity;
             }else{
@@ -31,10 +30,8 @@ function renderC3(){
             }
         })
     })
-    console.log(totalObj);
     // 2.轉成[['收納', 2670],['床架', 24000],['窗簾', 1200]];
     c3Data = Object.entries(totalObj);
-    console.log(c3Data);
     // 3.丟進套件
     let chart = c3.generate({
         bindto: '#chart', 
