@@ -1,10 +1,11 @@
 "use strict";
 
-var orderData = []; //DOM訂單資訊
-
+//DOM訂單資訊
 var dataAdmin = document.querySelector('[data-admin]'); //DOM刪除全部
 
-var delAll = document.querySelector('.js-delAll'); //初始化網站
+var delAll = document.querySelector('.js-delAll'); //訂單資訊
+
+var orderData = []; //初始化網站
 
 function init() {
   renderOrderList();
@@ -19,19 +20,15 @@ function renderC3() {
 
   orderData.forEach(function (item) {
     item.products.forEach(function (product) {
-      console.log(product.category);
-
       if (totalObj[product.category] == undefined) {
         totalObj[product.category] = product.price * product.quantity;
       } else {
         totalObj[product.category] += product.price * product.quantity;
       }
     });
-  });
-  console.log(totalObj); // 2.轉成[['收納', 2670],['床架', 24000],['窗簾', 1200]];
+  }); // 2.轉成[['收納', 2670],['床架', 24000],['窗簾', 1200]];
 
-  c3Data = Object.entries(totalObj);
-  console.log(c3Data); // 3.丟進套件
+  c3Data = Object.entries(totalObj); // 3.丟進套件
 
   var chart = c3.generate({
     bindto: '#chart',
