@@ -19,7 +19,9 @@ var submit = document.querySelector('[data-submit]'); //產品列表
 
 var productsData = []; //購物車列表
 
-var cartData = []; //初始化網站
+var cartData = []; //總金額
+
+var cartPriceTotal = []; //初始化網站
 
 function init() {
   renderProduct();
@@ -64,7 +66,8 @@ productSelect.addEventListener('change', function (e) {
 
 function getCartList() {
   axios.get("https://livejs-api.hexschool.io/api/livejs/v1/customer/".concat(api_path, "/carts")).then(function (response) {
-    cartData = response.data.carts; //判斷全部刪除按鈕
+    cartData = response.data.carts;
+    cartPriceTotal = response.data; //判斷全部刪除按鈕
 
     if (cartData.length === 0) {
       discardAllBtn.classList.add('discss');
@@ -73,9 +76,7 @@ function getCartList() {
     } //渲染購物車清單
 
 
-    renderCartList(cartData); //購物車總金額
-
-    cartListFoot.textContent = "NT".concat(thousand(response.data.finalTotal));
+    renderCartList(cartData, cartPriceTotal); //購物車總金額
   })["catch"](function (error) {
     alert(error.data);
   });
@@ -84,7 +85,7 @@ function getCartList() {
 
 function renderCartList(ary) {
   var str = '';
-  cartData.forEach(function (item) {
+  ary.forEach(function (item) {
     str += "<tr class='shoppingCart-bottom'>\n                <td>\n                    <div class=\"cardItem-title\">\n                        <img src=\"".concat(item.product.images, "\" alt=\"\">\n                        <p>").concat(item.product.title, "</p>\n                    </div>\n                </td>\n                <td>NT$").concat(thousand(item.product.price), "</td>\n                <td>\n                  <div class='d-flex justify-content-center align-items-center'>\n                    <a href=\"#\"><span class=\"material-icons cartAmount-icon\" data-id=\"").concat(item.id, "\" data-qty=\"").concat(item.quantity - 1, "\">remove</span></a>\n                    <p data-change>").concat(item.quantity, "</p>\n                    <a href=\"#\"><span class=\"material-icons cartAmount-icon\" data-id=\"").concat(item.id, "\" data-qty=\"").concat(item.quantity + 1, "\">add</span></a>\n                  </div>\n                </td>\n                <td>NT$").concat(thousand(item.product.price * item.quantity), "</td>\n                <td class=\"discardBtn\">\n                    <a data-product='").concat(item.id, "' href=\"#\" class=\"material-icons\">\n                        clear\n                    </a>\n                </td>\n              </tr>");
   });
   cartListBody.innerHTML = str; //新增功能:修改數量
@@ -98,6 +99,11 @@ function renderCartList(ary) {
       changeQty(id, qty);
     });
   });
+} //總金額
+
+
+function totalPriceHTML(total) {
+  cartListFoot.textContent = "NT".concat(thousand(total.finalTotal));
 } //新增功能:修改購物車數量
 
 
@@ -143,7 +149,9 @@ productWrap.addEventListener('click', function (e) {
   }).then(function (response) {
     alert('產品加入成功');
     cartData = response.data.carts;
+    cartPriceTotal = response.data;
     renderCartList(cartData);
+    totalPriceHTML(cartPriceTotal);
   })["catch"](function (error) {
     console.log(error.data);
   });
@@ -192,6 +200,10 @@ submit.addEventListener('click', function (e) {
     return alert('請填寫正確訂單資訊');
   }
 
+  sendform();
+});
+
+function sendform() {
   axios.post("https://livejs-api.hexschool.io/api/livejs/v1/customer/".concat(api_path, "/orders"), {
     "data": {
       "user": {
@@ -210,12 +222,15 @@ submit.addEventListener('click', function (e) {
     customerAddress.value = '';
     tradeWay.value = 'ATM';
     cartData.length = 0;
-    getCartList();
+    cartPriceTotal.finalTotal = 0;
+    renderCartList(cartData);
+    totalPriceHTML(cartPriceTotal);
   })["catch"](function (error) {
-    console.log(response.data);
+    alert(error.data);
   });
-}); //--驗證--
+} //--驗證--
 //綁驗證value的DOM
+
 
 var inputs = document.querySelectorAll("input[name],select[data=payment]"); //綁整個表單的DOM
 
@@ -260,7 +275,6 @@ inputs.forEach(function (item) {
     //更換成空字串
     item.nextElementSibling.textContent = '';
     var errors = validate(form, constraints) || '';
-    console.log(errors);
 
     if (errors) {
       Object.keys(errors).forEach(function (keys) {
